@@ -4,6 +4,7 @@
 #include <sys/param.h>
 
 #include "backend_oscstreamdb.h"
+#include "command.h"
 
 backend_oscstreamdb_options_t backend_oscstreamdb_options;
 
@@ -50,10 +51,28 @@ void oscstreamdb_stop()
 
 int oscstreamdb_poll()
 {
-    char s[1024];
-    while (fgets(s, 1024, oscstreamdb_process)) {
-        fputs(s, stdout);
-        fflush(stdout);
+    struct timeval t = {0,0};
+    int fd = fileno(oscstreamdb_process);
+    fd_set set;
+    FD_ZERO(&set);
+    FD_SET(fd, &set);
+
+    while (!feof(oscstreamdb_process)
+           && select(fd+1, &set, NULL, NULL, &t)>0)
+    {
+        char s[1024];
+        if (fgets(s, 1024, oscstreamdb_process)) {
+            fputs(s, stdout);
+            fflush(stdout);
+        }
+
+        need_prompt = 1;
+
+        FD_ZERO(&set);
+        FD_SET(fd, &set);
+        t.tv_sec = 0;
+        t.tv_usec = 0;
     }
+
     return feof(oscstreamdb_process);
 }

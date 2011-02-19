@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "backend_oscstreamdb.h"
+#include "command.h"
 
 typedef enum
 {
@@ -121,8 +122,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    while (!backend_poll())
-        sleep(1);
+    while (!(backend_poll() || command_poll()))
+        usleep(100000);
+
+    printf("Exiting.\n");
 
     backend_stop();
 
