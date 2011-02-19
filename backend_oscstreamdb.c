@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/param.h>
+#include <string.h>
 
 #include "backend_oscstreamdb.h"
 #include "command.h"
@@ -9,6 +10,15 @@
 backend_oscstreamdb_options_t backend_oscstreamdb_options;
 
 FILE* oscstreamdb_process = 0;
+
+void oscstreamdb_defaults()
+{
+    memset(&backend_oscstreamdb_options, 0,
+           sizeof(backend_oscstreamdb_options));
+    backend_oscstreamdb_options.executable_path = "oscstreamdb";
+    backend_oscstreamdb_options.stream = 0;
+    backend_oscstreamdb_options.database = "oscstreamdb";
+}
 
 int oscstreamdb_start()
 {

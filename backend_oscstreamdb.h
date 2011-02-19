@@ -10,6 +10,7 @@ typedef struct {
 
 extern backend_oscstreamdb_options_t backend_oscstreamdb_options;
 
+void oscstreamdb_defaults();
 int oscstreamdb_start();
 void oscstreamdb_stop();
 int oscstreamdb_poll();

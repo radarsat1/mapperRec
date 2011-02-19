@@ -96,8 +96,7 @@ int cmdline(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-    memset(&backend_oscstreamdb_options, 0,
-           sizeof(backend_oscstreamdb_options));
+    oscstreamdb_defaults();
 
     if (cmdline(argc, argv))
         return 1;
