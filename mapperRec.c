@@ -8,10 +8,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "backend_oscstreamdb.h"
 #include "command.h"
 #include "recmonitor.h"
 #include "recdevice.h"
+#include "backend_file.h"
+#include "backend_oscstreamdb.h"
 
 typedef enum
 {
@@ -34,7 +35,8 @@ void help()
     printf("recmapper -s <stream name> -m <mapper device> "
                      "[-d <database string>]\n"
            "          [-b <backend=file,oscstreamdb>] "
-                     "[-r <path to oscsstreamdb>]\n");
+                     "[-r <path to oscsstreamdb>]\n"
+           "          [-f <output file>]\n");
 }
 
 int cmdline(int argc, char *argv[])
@@ -50,11 +52,12 @@ int cmdline(int argc, char *argv[])
             {"backend",     required_argument, 0, 'b'},
             {"oscstreamdb", required_argument, 0, 'r'},
             {"device",      required_argument, 0, 'm'},
+            {"file",        required_argument, 0, 'f'},
             {0, 0, 0, 0}
         };
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "hd:s:b:r:m:",
+        c = getopt_long (argc, argv, "hd:s:b:r:m:f:",
                          long_options, &option_index);
         if (c == -1)
             break;
@@ -92,6 +95,10 @@ int cmdline(int argc, char *argv[])
             device_name = optarg;
             break;
 
+        case 'f':
+            backend_file_options.file_path = optarg;
+            break;
+
         case 'h':
             help();
             break;
@@ -120,8 +127,11 @@ int main(int argc, char *argv[])
 
     switch (backend) {
     case BACKEND_FILE:
-        printf("File backend not yet implemented.\n");
-        return 1;
+        backend_start = file_start;
+        backend_stop = file_stop;
+        backend_poll = file_poll;
+        backend_write_value = file_write_value;
+        break;
     case BACKEND_OSCSTREAMDB:
         if (backend_oscstreamdb_options.stream==0) {
             help();
