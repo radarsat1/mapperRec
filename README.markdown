@@ -12,7 +12,7 @@ The back-ends currently implemented are:
 
 - A text file writer.
 - A binary file writer.
-- A writer that forwards the data to Andy Schemder's OSCStreamDB [1].
+- A writer that forwards the data to [Andy Schemder's OSCStreamDB][1].
 
 Currently, "interesting signals" are defined as any output signal that
 matches a given device name.  So it can be used to record all output
@@ -26,6 +26,7 @@ This software is licensed with the GPLv3; see the attached file
 COPYING for details, which should be included in this download.
 
 Stephen Sinclair 2011
-Input Devices and Music Interaction Laboratory, McGill University.
+[Input Devices and Music Interaction Laboratory][2], McGill University.
 
-http://idmil.org/software/libmapper
+[1]: http://cnmat.berkeley.edu/system/files/attachments/oscstreamdb-final.pdf
+[2]: http://idmil.org/software/libmapper
