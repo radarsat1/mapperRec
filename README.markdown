@@ -12,7 +12,7 @@ The back-ends currently implemented are:
 
 - A text file writer.
 - A binary file writer.
-- A writer that forwards the data to [Andy Schemder's OSCStreamDB][1].
+- A writer that forwards the data to [Andy Schemder's OSCStreamDB][1], which writes it to a Postgresql database.
 
 Currently, "interesting signals" are defined as any output signal that
 matches a given device name.  So it can be used to record all output
