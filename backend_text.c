@@ -11,9 +11,9 @@
 
 backend_text_options_t backend_text_options;
 
-FILE* output_file = 0;
+static FILE* output_file = 0;
 
-lo_timetag last_write = {0,0};
+static lo_timetag last_write = {0,0};
 
 void text_defaults()
 {

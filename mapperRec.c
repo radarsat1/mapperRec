@@ -12,16 +12,18 @@
 #include "recmonitor.h"
 #include "recdevice.h"
 #include "backend_text.h"
+#include "backend_binary.h"
 #include "backend_oscstreamdb.h"
 
 typedef enum
 {
     BACKEND_FILE,
+    BACKEND_BINARY,
     BACKEND_OSCSTREAMDB,
     N_BACKENDS
 } backends_t;
 
-const char *backend_strings[N_BACKENDS] = { "file", "oscstreamdb" };
+const char *backend_strings[N_BACKENDS] = { "file", "binary", "oscstreamdb" };
 
 backends_t backend = BACKEND_FILE;
 
@@ -97,6 +99,7 @@ int cmdline(int argc, char *argv[])
 
         case 'f':
             backend_text_options.file_path = optarg;
+            backend_binary_options.file_path = optarg;
             break;
 
         case 'h':
@@ -131,6 +134,12 @@ int main(int argc, char *argv[])
         backend_stop = text_stop;
         backend_poll = text_poll;
         backend_write_value = text_write_value;
+        break;
+    case BACKEND_BINARY:
+        backend_start = binary_start;
+        backend_stop = binary_stop;
+        backend_poll = binary_poll;
+        backend_write_value = binary_write_value;
         break;
     case BACKEND_OSCSTREAMDB:
         if (backend_oscstreamdb_options.stream==0) {
