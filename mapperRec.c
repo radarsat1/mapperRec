@@ -10,6 +10,7 @@
 
 #include "backend_oscstreamdb.h"
 #include "command.h"
+#include "recmonitor.h"
 
 typedef enum
 {
@@ -28,8 +29,10 @@ int (*backend_poll)();
 
 void help()
 {
-    printf("recmapper -s <stream name> [-d <database string>] "
-           "[-b <backend=file,oscstreamdb>] [-r <path to oscsstreamdb>]\n");
+    printf("recmapper -s <stream name> -m <mapper device> "
+                     "[-d <database string>]\n"
+           "          [-b <backend=file,oscstreamdb>] "
+                     "[-r <path to oscsstreamdb>]\n");
 }
 
 int cmdline(int argc, char *argv[])
@@ -44,11 +47,12 @@ int cmdline(int argc, char *argv[])
             {"stream",      required_argument, 0, 's'},
             {"backend",     required_argument, 0, 'b'},
             {"oscstreamdb", required_argument, 0, 'r'},
+            {"device",      required_argument, 0, 'm'},
             {0, 0, 0, 0}
         };
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "hd:s:b:r:",
+        c = getopt_long (argc, argv, "hd:s:b:r:m:",
                          long_options, &option_index);
         if (c == -1)
             break;
@@ -82,6 +86,10 @@ int cmdline(int argc, char *argv[])
             }
             break;
 
+        case 'm':
+            device_name = optarg;
+            break;
+
         case 'h':
             help();
             break;
@@ -96,10 +104,17 @@ int cmdline(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
+    int rc=0;
+
     oscstreamdb_defaults();
 
     if (cmdline(argc, argv))
         return 1;
+
+    if (!device_name) {
+        printf("You must specify a device name to record. (-m)\n");
+        return 1;
+    }
 
     switch (backend) {
     case BACKEND_FILE:
@@ -121,15 +136,26 @@ int main(int argc, char *argv[])
 
     if (backend_start()) {
         printf("Error starting backend.\n");
-        return 1;
+        rc = 1;
+        goto done;
     }
 
-    while (!(backend_poll() || command_poll()))
-        usleep(100000);
+    if (recmonitor_start()) {
+        printf("Error starting monitor.\n");
+        rc = 1;
+        goto done;
+    }
 
+    while (!(backend_poll() || command_poll())) {
+        recmonitor_poll();
+        usleep(100000);
+    }
+
+  done:
     printf("Exiting.\n");
 
+    recmonitor_stop();
     backend_stop();
 
-    return 0;
+    return rc;
 }
