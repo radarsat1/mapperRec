@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "mapperRec.h"
 #include "command.h"
 #include "recmonitor.h"
 #include "recdevice.h"
@@ -49,6 +50,7 @@ int cmdline(int argc, char *argv[])
         static struct option long_options[] =
         {
             {"help",        no_argument,       0, 'h'},
+            {"version",     no_argument,       0, 'v'},
             {"database",    required_argument, 0, 'd'},
             {"stream",      required_argument, 0, 's'},
             {"backend",     required_argument, 0, 'b'},
@@ -59,7 +61,7 @@ int cmdline(int argc, char *argv[])
         };
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "hd:s:b:r:m:f:",
+        c = getopt_long (argc, argv, "hvd:s:b:r:m:f:",
                          long_options, &option_index);
         if (c == -1)
             break;
@@ -101,6 +103,10 @@ int cmdline(int argc, char *argv[])
             backend_text_options.file_path = optarg;
             backend_binary_options.file_path = optarg;
             break;
+
+        case 'v':
+            printf("mapperRec v%s, (C) " __DATE__ " Stephen Sinclair; http://idmil.org\n", PACKAGE_VERSION);
+            exit(0);
 
         case 'h':
             help();
