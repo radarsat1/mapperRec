@@ -4,6 +4,7 @@
 #include <sys/param.h>
 #include <string.h>
 #include <sys/time.h>
+#include <lo/lo.h>
 
 #include "backend_oscstreamdb.h"
 #include "command.h"
@@ -11,6 +12,8 @@
 backend_oscstreamdb_options_t backend_oscstreamdb_options;
 
 FILE* oscstreamdb_process = 0;
+
+lo_address a_write = 0;
 
 void oscstreamdb_defaults()
 {
@@ -77,6 +80,16 @@ int oscstreamdb_poll()
             fflush(stdout);
         }
 
+        if (!a_write && strncmp(s, "Ports:", 6)==0) {
+            char *w = strstr(s, "Write RX=");
+            if (w) {
+                char rx[10];
+                snprintf(rx, 10, "%d", atoi(w + 9));
+                printf("Creating address for write port %d\n", atoi(rx));
+                a_write = lo_address_new("localhost", rx);
+            }
+        }
+
         need_prompt = 1;
 
         FD_ZERO(&set);
@@ -88,19 +101,52 @@ int oscstreamdb_poll()
     return feof(oscstreamdb_process);
 }
 
+/* TODO: Bundle messages together that happen in the same call to poll(). */
 void oscstreamdb_write_value(mapper_signal msig, void *v)
 {
-    char str[1024], *name = str;
-    msig_full_name(msig, name, 1024); 
+    int i;
+    char str[1024], *path = str;
+    msig_full_name(msig, path, 1024); 
 
-    if (name[0]=='/')
-        name ++;
+    if (path[0]=='/')
+        path ++;
 
-    while (name[0] && name[0]!='/')
-        name ++;
+    while (path[0] && path[0]!='/')
+        path ++;
 
-    struct timeval now;
-    gettimeofday(&now, NULL);
+    mapper_db_signal mprop = msig_properties(msig);
 
-    printf("Writing %s\n", name);
+    if (!a_write)
+        printf("No write port yet. :(\n");
+    else {
+        lo_timetag now;
+        lo_timetag_now(&now);
+
+        lo_bundle b = lo_bundle_new(now);
+        if (!b) {
+            printf("Could not create lo_bundle.\n");
+            return;
+        }
+
+        lo_message m = lo_message_new();
+        if (!m) {
+            printf("Could not create lo_message.\n");
+            lo_bundle_free(b);
+            return;
+        }
+
+        if (mprop->type == 'i') {
+            for (i=0; i<mprop->length; i++)
+                lo_message_add_int32(m, ((int*)v)[i]);
+        }
+        else if (mprop->type == 'f') {
+            for (i=0; i<mprop->length; i++)
+                lo_message_add_float(m, ((float*)v)[i]);
+        }
+
+        lo_bundle_add_message(b, path, m);
+        lo_send_bundle(a_write, b);
+
+        lo_bundle_free_messages(b);
+    }
 }
