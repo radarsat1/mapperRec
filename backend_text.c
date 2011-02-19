@@ -6,41 +6,41 @@
 #include <sys/time.h>
 #include <lo/lo.h>
 
-#include "backend_file.h"
+#include "backend_text.h"
 #include "command.h"
 
-backend_file_options_t backend_file_options;
+backend_text_options_t backend_text_options;
 
 FILE* output_file = 0;
 
 lo_timetag last_write = {0,0};
 
-void file_defaults()
+void text_defaults()
 {
-    memset(&backend_file_options, 0,
-           sizeof(backend_file_options));
-    backend_file_options.file_path = 0;
+    memset(&backend_text_options, 0,
+           sizeof(backend_text_options));
+    backend_text_options.file_path = 0;
 }
 
-int file_start()
+int text_start()
 {
-    if (!backend_file_options.file_path) {
+    if (!backend_text_options.file_path) {
         printf("No output filename specified.\n");
         return 1;
     }
 
-    output_file = fopen(backend_file_options.file_path, "a");
+    output_file = fopen(backend_text_options.file_path, "a");
 
     if (!output_file) {
         printf("Error opening file `%s' for writing.\n",
-               backend_file_options.file_path);
+               backend_text_options.file_path);
         return 1;
     }
 
     return 0;
 }
 
-void file_stop()
+void text_stop()
 {
     if (output_file)
     {
@@ -49,13 +49,13 @@ void file_stop()
     }
 }
 
-int file_poll()
+int text_poll()
 {
     return 0;
 }
 
 /* TODO: Bundle messages together that happen in the same call to poll(). */
-void file_write_value(mapper_signal msig, void *v)
+void text_write_value(mapper_signal msig, void *v)
 {
     int i;
     char str[1024], *path = str;

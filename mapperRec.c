@@ -11,7 +11,7 @@
 #include "command.h"
 #include "recmonitor.h"
 #include "recdevice.h"
-#include "backend_file.h"
+#include "backend_text.h"
 #include "backend_oscstreamdb.h"
 
 typedef enum
@@ -96,7 +96,7 @@ int cmdline(int argc, char *argv[])
             break;
 
         case 'f':
-            backend_file_options.file_path = optarg;
+            backend_text_options.file_path = optarg;
             break;
 
         case 'h':
@@ -127,10 +127,10 @@ int main(int argc, char *argv[])
 
     switch (backend) {
     case BACKEND_FILE:
-        backend_start = file_start;
-        backend_stop = file_stop;
-        backend_poll = file_poll;
-        backend_write_value = file_write_value;
+        backend_start = text_start;
+        backend_stop = text_stop;
+        backend_poll = text_poll;
+        backend_write_value = text_write_value;
         break;
     case BACKEND_OSCSTREAMDB:
         if (backend_oscstreamdb_options.stream==0) {
