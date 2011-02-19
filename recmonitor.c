@@ -1,21 +1,40 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <mapper/mapper.h>
 
 #include "recmonitor.h"
+#include "recdevice.h"
 
 const char *device_name = 0;
 
 mapper_monitor *mon;
 mapper_db *db;
 
+typedef struct _signal_list_t {
+    const char *device_name;
+    const char *signal_name;
+    char type;
+    int length;
+    struct _signal_list_t *next;
+} signal_list_t;
+
+signal_list_t *signal_stack = 0;
+
+void push_signal_stack(const char *devname, const char *signame,
+                       char type, int length);
+signal_list_t *pop_signal_stack();
+void free_signal(signal_list_t *sig);
+void record_signals_on_stack();
+
 static void device_callback(mapper_db_device dev,
                             mapper_db_action_t action,
                             void *user)
 {
     if (action == MDB_NEW) {
-        if (strstr(dev->name, device_name)!=0)
+        if (strstr(dev->name, device_name)!=0
+            && strcmp(dev->name, mdev_name(recdev)?mdev_name(recdev):"")!=0)
             mapper_monitor_request_signals_by_name(mon, dev->name);
     }
 }
@@ -25,9 +44,11 @@ static void signal_callback(mapper_db_signal sig,
                             void *user)
 {
     if (action == MDB_NEW) {
-        if (sig->is_output && strstr(sig->device_name, device_name)!=0) {
-            printf("Found: %s%s\n", sig->device_name, sig->name);
-        }
+        if (sig->is_output && strstr(sig->device_name, device_name)!=0
+            && strcmp(sig->device_name,
+                      mdev_name(recdev)?mdev_name(recdev):"")!=0)
+            push_signal_stack(sig->device_name, sig->name,
+                              sig->type, sig->length);
     }
 }
 
@@ -46,9 +67,72 @@ int recmonitor_start()
 void recmonitor_poll()
 {
     mapper_monitor_poll(mon, 0);
+    record_signals_on_stack();
 }
 
 void recmonitor_stop()
 {
-    mapper_monitor_free(mon);
+    if (mon)
+        mapper_monitor_free(mon);
+}
+
+void push_signal_stack(const char *devname, const char *signame,
+                       char type, int length)
+{
+    signal_list_t **q = &signal_stack;
+    signal_list_t *n = malloc(sizeof(signal_list_t));
+    n->next = *q;
+    *q = n;
+    n->device_name = strdup(devname);
+    n->signal_name = strdup(signame);
+    n->type = type;
+    n->length = length;
+}
+
+signal_list_t *pop_signal_stack()
+{
+    signal_list_t **q = &signal_stack;
+    signal_list_t *n = *q;
+    if (*q)
+        *q = (*q)->next;
+    return n;
+}
+
+void free_signal(signal_list_t *sig)
+{
+    if (sig) {
+        free((void*)sig->device_name);
+        free((void*)sig->signal_name);
+        free(sig);
+    }
+}
+
+void record_signals_on_stack()
+{
+    if (!mdev_ready(recdev))
+        return;
+
+    const char *devname = mdev_name(recdev);
+    if (!devname) return;
+
+    signal_list_t *n = pop_signal_stack();
+    while (n) {
+        printf("Recording %s%s\n", n->device_name, n->signal_name);
+
+        /* TODO only do this if necessary -- will be ignored otherwise */
+        mapper_monitor_link(mon, n->device_name, devname);
+
+        recdevice_add_input(n->device_name, n->signal_name,
+                            n->type, n->length);
+
+        char signame[1024], recsigname[1024];
+        snprintf(signame, 1024, "%s%s", n->device_name, n->signal_name);
+        snprintf(recsigname, 1024, "%s%s%s", devname, n->device_name,
+                 n->signal_name);
+
+        mapper_monitor_connect(mon, signame, recsigname, 0, 0);
+
+        free_signal(n);
+        n = pop_signal_stack();
+    }
 }

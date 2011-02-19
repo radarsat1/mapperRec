@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <sys/param.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "backend_oscstreamdb.h"
 #include "command.h"
@@ -85,4 +86,21 @@ int oscstreamdb_poll()
     }
 
     return feof(oscstreamdb_process);
+}
+
+void oscstreamdb_write_value(mapper_signal msig, void *v)
+{
+    char str[1024], *name = str;
+    msig_full_name(msig, name, 1024); 
+
+    if (name[0]=='/')
+        name ++;
+
+    while (name[0] && name[0]!='/')
+        name ++;
+
+    struct timeval now;
+    gettimeofday(&now, NULL);
+
+    printf("Writing %s\n", name);
 }

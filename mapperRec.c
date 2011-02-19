@@ -11,6 +11,7 @@
 #include "backend_oscstreamdb.h"
 #include "command.h"
 #include "recmonitor.h"
+#include "recdevice.h"
 
 typedef enum
 {
@@ -26,6 +27,7 @@ backends_t backend = BACKEND_FILE;
 int (*backend_start)();
 void (*backend_stop)();
 int (*backend_poll)();
+void (*backend_write_value)(mapper_signal msig, void *v);
 
 void help()
 {
@@ -128,6 +130,7 @@ int main(int argc, char *argv[])
         backend_start = oscstreamdb_start;
         backend_stop = oscstreamdb_stop;
         backend_poll = oscstreamdb_poll;
+        backend_write_value = oscstreamdb_write_value;
         break;
     default:
         printf("Unknown backend selected.\n");
@@ -146,8 +149,15 @@ int main(int argc, char *argv[])
         goto done;
     }
 
+    if (recdevice_start()) {
+        printf("Error starting device.\n");
+        rc = 1;
+        goto done;
+    }
+
     while (!(backend_poll() || command_poll())) {
         recmonitor_poll();
+        recdevice_poll();
         usleep(100000);
     }
 
@@ -155,6 +165,7 @@ int main(int argc, char *argv[])
     printf("Exiting.\n");
 
     recmonitor_stop();
+    recdevice_stop();
     backend_stop();
 
     return rc;

@@ -2,6 +2,8 @@
 #ifndef __BACKEND_OSCSTREAMDB_H__
 #define __BACKEND_OSCSTREAMDB_H__
 
+#include <mapper/mapper.h>
+
 typedef struct {
     const char *stream;
     const char *database;
@@ -14,5 +16,6 @@ void oscstreamdb_defaults();
 int oscstreamdb_start();
 void oscstreamdb_stop();
 int oscstreamdb_poll();
+void oscstreamdb_write_value(mapper_signal msig, void *v);
 
 #endif // __BACKEND_OSCSTREAMDB_H__
