@@ -115,6 +115,9 @@ int main(int argc, char *argv[])
         backend_stop = oscstreamdb_stop;
         backend_poll = oscstreamdb_poll;
         break;
+    default:
+        printf("Unknown backend selected.\n");
+        return 1;
     }
 
     if (backend_start()) {
