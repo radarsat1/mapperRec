@@ -38,9 +38,9 @@ void help()
     printf("recmapper -m <mapper device> [-b <backend=file,oscstreamdb>]\n"
            "          [-s <stream name>] "
                      "[-d <database string>]\n"
-           "          "
-                     "[-r <path to oscsstreamdb>] "
-                     "[-f <output file>]\n");
+           "          [-r <path to oscsstreamdb>] "
+                     "[-f <output file>]\n"
+           "          [-v] [-h]");
 }
 
 int cmdline(int argc, char *argv[])
