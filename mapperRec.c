@@ -111,7 +111,7 @@ int cmdline(int argc, char *argv[])
 
         case 'h':
             help();
-            break;
+            exit(0);
 
         default:
             return 1;
