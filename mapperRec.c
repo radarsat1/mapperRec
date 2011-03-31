@@ -35,7 +35,7 @@ void (*backend_write_value)(mapper_signal msig, void *v);
 
 void help()
 {
-    printf("recmapper -m <mapper device> [-b <backend=file,oscstreamdb>]\n"
+    printf("recmapper -m <mapper device> [-b <backend=file,binary,oscstreamdb>]\n"
            "          [-s <stream name>] "
                      "[-d <database string>]\n"
            "          [-r <path to oscsstreamdb>] "
