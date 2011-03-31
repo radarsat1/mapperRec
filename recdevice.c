@@ -25,7 +25,7 @@ void recdevice_stop()
         mdev_free(recdev);
 }
 
-void input_handler(struct _mapper_signal *msig, void *v)
+void input_handler(struct _mapper_signal *msig, mapper_db_signal props, void *v)
 {
     backend_write_value(msig, v);
 }
