@@ -13,4 +13,6 @@ void recdevice_add_input(const char *devname, const char *signame,
 
 extern mapper_device *recdev;
 
+void recdevice_get_frame(int *take, int *frame);
+
 #endif // __RECDEVICE_H__

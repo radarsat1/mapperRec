@@ -6,6 +6,7 @@
 #include <sys/time.h>
 #include <lo/lo.h>
 
+#include "recdevice.h"
 #include "backend_text.h"
 #include "command.h"
 
@@ -72,8 +73,11 @@ void text_write_value(mapper_signal msig, void *v)
 
     mapper_db_signal mprop = msig_properties(msig);
 
-    fprintf(output_file, "%u.%u %s %c ",
-            now.sec, now.frac, path, mprop->type);
+    int take, frame;
+    recdevice_get_frame(&take, &frame);
+
+    fprintf(output_file, "%u.%u %d %d %s %c ",
+            now.sec, now.frac, take, frame, path, mprop->type);
 
     if (mprop->type == 'i') {
         for (i=0; i<mprop->length; i++)

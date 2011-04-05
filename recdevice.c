@@ -8,9 +8,30 @@
 
 mapper_device *recdev;
 
+struct
+{
+    int take;
+    int frame;
+} framestamp = { 0, 0 };
+
+static void frame_handler(mapper_signal msig, void *v)
+{
+    int *i = (int*)v;
+    framestamp.take  = i[0];
+    framestamp.frame = i[1];
+}
+
+void recdevice_get_frame(int *take, int *frame)
+{
+    *take = framestamp.take;
+    *frame = framestamp.frame;
+}
+
 int recdevice_start()
 {
     recdev = mdev_new("mapperRec", 9000, 0);
+    if (recdev)
+        mdev_add_input(recdev, "frame", 2, 'i', 0, 0, 0, frame_handler, 0);
     return recdev==0;
 }
 

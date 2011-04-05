@@ -31,6 +31,7 @@ backends_t backend = BACKEND_FILE;
 int (*backend_start)();
 void (*backend_stop)();
 int (*backend_poll)();
+void (*backend_set_frame)(int take, int frame);
 void (*backend_write_value)(mapper_signal msig, void *v);
 
 void help()
