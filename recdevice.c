@@ -14,7 +14,9 @@ struct
     int frame;
 } framestamp = { 0, 0 };
 
-static void frame_handler(mapper_signal msig, void *v)
+static
+void frame_handler(struct _mapper_signal *msig, mapper_db_signal props,
+                   mapper_timetag_t *timetag, void *v)
 {
     int *i = (int*)v;
     framestamp.take  = i[0];
