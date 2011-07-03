@@ -8,6 +8,7 @@
 #include "recdevice.h"
 
 const char *device_name = 0;
+const char *path_name = 0;
 
 mapper_monitor *mon;
 mapper_db *db;
@@ -47,7 +48,8 @@ static void signal_callback(mapper_db_signal sig,
     if (action == MDB_NEW) {
         if (sig->is_output && strstr(sig->device_name, device_name)!=0
             && strcmp(sig->device_name,
-                      mdev_name(recdev)?mdev_name(recdev):"")!=0)
+                      mdev_name(recdev)?mdev_name(recdev):"")!=0
+            && (path_name?strncmp(sig->name, path_name, strlen(path_name))==0:1))
             push_signal_stack(sig->device_name, sig->name,
                               sig->type, sig->length);
     }

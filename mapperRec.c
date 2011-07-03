@@ -41,7 +41,8 @@ void help()
                      "[-d <database string>]\n"
            "          [-r <path to oscsstreamdb>] "
                      "[-f <output file>]\n"
-           "          [-v] [-h]");
+           "          [-p <OSC path string to match>]"
+                     "[-v] [-h]");
 }
 
 int cmdline(int argc, char *argv[])
@@ -59,11 +60,12 @@ int cmdline(int argc, char *argv[])
             {"oscstreamdb", required_argument, 0, 'r'},
             {"device",      required_argument, 0, 'm'},
             {"file",        required_argument, 0, 'f'},
+            {"path",        required_argument, 0, 'p'},
             {0, 0, 0, 0}
         };
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "hvd:s:b:r:m:f:",
+        c = getopt_long (argc, argv, "hvd:s:b:r:m:f:p:",
                          long_options, &option_index);
         if (c == -1)
             break;
@@ -99,6 +101,10 @@ int cmdline(int argc, char *argv[])
 
         case 'm':
             device_name = optarg;
+            break;
+
+        case 'p':
+            path_name = optarg;
             break;
 
         case 'f':
