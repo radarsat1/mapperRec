@@ -32,6 +32,7 @@ int (*backend_start)();
 void (*backend_stop)();
 int (*backend_poll)();
 void (*backend_write_value)(mapper_signal msig, void *v);
+int done = 0;
 
 void help()
 {
@@ -121,9 +122,16 @@ int cmdline(int argc, char *argv[])
     return 0;
 }
 
+void ctrlc(int sig)
+{
+    done = 1;
+}
+
 int main(int argc, char *argv[])
 {
     int rc=0;
+
+    signal(SIGINT, ctrlc);
 
     oscstreamdb_defaults();
 
@@ -181,7 +189,7 @@ int main(int argc, char *argv[])
         goto done;
     }
 
-    while (!(backend_poll() || command_poll())) {
+    while (!(backend_poll() || command_poll() || done)) {
         recmonitor_poll();
         recdevice_poll();
         usleep(100000);

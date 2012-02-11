@@ -72,8 +72,20 @@ void recmonitor_poll()
 
 void recmonitor_stop()
 {
-    if (mon)
-        mapper_monitor_free(mon);
+    if (!mon)
+        return;
+    if (mdev_ready(recdev)) {
+        const char *devname = mdev_name(recdev);
+        if (devname) {
+            mapper_db_device *dev = mapper_db_match_devices_by_name(db, device_name);
+            while (dev) {
+                printf("Unlinking %s %s\n", (*dev)->name, devname);
+                mapper_monitor_unlink(mon, (*dev)->name, devname);
+                dev = mapper_db_device_next(dev);
+            }
+        }
+    }
+    mapper_monitor_free(mon);
 }
 
 void push_signal_stack(const char *devname, const char *signame,
