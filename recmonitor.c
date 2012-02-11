@@ -54,7 +54,7 @@ static void signal_callback(mapper_db_signal sig,
 
 int recmonitor_start()
 {
-    mon = mapper_monitor_new();
+    mon = mapper_monitor_new(0, 0);
     if (mon) {
         db = mapper_monitor_get_db(mon);
         mapper_db_add_device_callback(db, device_callback, 0);
