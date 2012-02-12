@@ -11,6 +11,7 @@ const char *device_name = 0;
 
 mapper_monitor *mon;
 mapper_db *db;
+int dev_ready = 0;
 
 typedef struct _signal_list_t {
     const char *device_name;
@@ -67,6 +68,10 @@ int recmonitor_start()
 void recmonitor_poll()
 {
     mapper_monitor_poll(mon, 0);
+    if (!dev_ready && mdev_ready(recdev)) {
+        mapper_monitor_request_devices(mon);
+        dev_ready = 1;
+    }
     record_signals_on_stack();
 }
 
