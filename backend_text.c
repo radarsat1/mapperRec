@@ -72,7 +72,7 @@ void text_write_value(mapper_signal msig, void *v)
 
     mapper_db_signal mprop = msig_properties(msig);
 
-    fprintf(output_file, "%u.%u %s %c ",
+    fprintf(output_file, "%u %u %s %c ",
             now.sec, now.frac, path, mprop->type);
 
     if (mprop->type == 'i') {
