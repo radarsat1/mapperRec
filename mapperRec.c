@@ -36,7 +36,7 @@ int done = 0;
 
 void help()
 {
-    printf("recmapper -m <mapper device> [-b <backend=file,oscstreamdb>]\n"
+    printf("recmapper -m <mapper device> [-b <backend=file,binary,oscstreamdb>]\n"
            "          [-s <stream name>] "
                      "[-d <database string>]\n"
            "          [-r <path to oscsstreamdb>] "
