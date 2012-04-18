@@ -2,6 +2,7 @@
 
 import ctypes, time
 import _ctypes
+import os
 
 def func_address(adll, name):
     if 'dlsym' in dir(_ctypes):
@@ -9,7 +10,11 @@ def func_address(adll, name):
     else:
         return _ctypes.GetProcAddress(adll._handle, name)
 
-rec = ctypes.cdll.LoadLibrary("./libmapperrec.so")
+if os.path.exists("./libmapperrec.dylib"):
+    rec = ctypes.cdll.LoadLibrary("./libmapperrec.dylib")
+elif os.path.exists("./libmapperrec.so"):
+    rec = ctypes.cdll.LoadLibrary("./libmapperrec.so")
+
 rec.oscstreamdb_defaults()
 
 device_name = ctypes.c_char_p.in_dll(rec, "device_name")
