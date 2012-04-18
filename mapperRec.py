@@ -17,10 +17,6 @@ elif os.path.exists("./libmapperrec.so"):
 
 rec.oscstreamdb_defaults()
 
-device_name = ctypes.c_char_p.in_dll(rec, "device_name")
-
-path_name = ctypes.c_char_p.in_dll(rec, "device_name")
-
 backend_strings = (ctypes.c_char_p*3).in_dll(rec, "backend_strings")
 
 backend = ctypes.c_int.in_dll(rec, "backend")
@@ -53,16 +49,16 @@ backend_patterns = {
 }
     
 def set_device_name(name):
-    device_name.value = name
+    rec.recmonitor_add_device_string(name)
 
 def set_path_name(name):
-    path_name.value = name
+    rec.recmonitor_add_signal_string(name)
 
 def set_backend(b):
     backend.value = backend_patterns[b]
 
 def start():
-    if path_name.value == None or device_name.value == None:
+    if ctypes.c_int.in_dll(rec, "n_device_strings").value < 1:
         raise Exception("Must set device or path name.")
 
     backend_start = ctypes.c_void_p.in_dll(rec, "backend_start")

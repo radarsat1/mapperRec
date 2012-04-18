@@ -7,8 +7,10 @@
 #include "recmonitor.h"
 #include "recdevice.h"
 
-const char *device_name = 0;
-const char *path_name = 0;
+struct stringlist *device_strings = 0;
+struct stringlist *signal_strings = 0;
+int n_device_strings = 0;
+int n_signal_strings = 0;
 
 mapper_monitor *mon;
 mapper_db *db;
@@ -35,23 +37,59 @@ static void device_callback(mapper_db_device dev,
                             void *user)
 {
     if (action == MDB_NEW) {
-        if (strstr(dev->name, device_name)!=0
-            && strcmp(dev->name, mdev_name(recdev)?mdev_name(recdev):"")!=0)
-            mapper_monitor_request_signals_by_name(mon, dev->name);
+        struct stringlist **node = &device_strings;
+        while (*node) {
+            if (strstr(dev->name, (*node)->string)!=0
+                && strcmp(dev->name,
+                          mdev_name(recdev)?mdev_name(recdev):"")!=0)
+            {
+                mapper_monitor_request_signals_by_name(mon, dev->name);
+                break;
+            }
+            node = &(*node)->next;
+        }
     }
 }
 
 static void signal_callback(mapper_db_signal sig,
                             mapper_db_action_t action,
                             void *user)
-{
+{ 
+    if (!sig->is_output)
+        return;
     if (action == MDB_NEW) {
-        if (sig->is_output && strstr(sig->device_name, device_name)!=0
-            && strcmp(sig->device_name,
-                      mdev_name(recdev)?mdev_name(recdev):"")!=0
-            && (path_name?strncmp(sig->name, path_name, strlen(path_name))==0:1))
-            push_signal_stack(sig->device_name, sig->name,
-                              sig->type, sig->length);
+        struct stringlist **devnode = &device_strings;
+        while (*devnode) {
+            if (strstr(sig->device_name, (*devnode)->string)!=0
+                && strcmp(sig->device_name,
+                          mdev_name(recdev)?mdev_name(recdev):"")!=0)
+            {
+                struct stringlist **signode = &signal_strings;
+                if (!*signode) {
+                    push_signal_stack(sig->device_name, sig->name,
+                                      sig->type, sig->length);
+                    break;
+                }
+                while (*signode) {
+                    if ((strncmp(sig->name, (*signode)->string,
+                                 strlen((*signode)->string))==0)
+                        || ((*signode)->string[0]=='/'
+                            && strncmp(sig->name, (*signode)->string+1,
+                                       strlen((*signode)->string))==0))
+                    {
+                        push_signal_stack(sig->device_name, sig->name,
+                                          sig->type, sig->length);
+                        signode = 0;
+                        break;
+                    }
+                    else
+                        signode = &(*signode)->next;
+                }
+                if (!signode)
+                    break;
+            }
+            devnode = &(*devnode)->next;
+        }
     }
 }
 
@@ -84,11 +122,16 @@ void recmonitor_stop()
     if (mdev_ready(recdev)) {
         const char *devname = mdev_name(recdev);
         if (devname) {
-            mapper_db_device *dev = mapper_db_match_devices_by_name(db, device_name);
-            while (dev) {
-                printf("Unlinking %s %s\n", (*dev)->name, devname);
-                mapper_monitor_unlink(mon, (*dev)->name, devname);
-                dev = mapper_db_device_next(dev);
+            struct stringlist **node = &device_strings;
+            while (*node) {
+                mapper_db_device *dev =
+                    mapper_db_match_devices_by_name(db, (*node)->string);
+                while (dev) {
+                    printf("Unlinking %s %s\n", (*dev)->name, devname);
+                    mapper_monitor_unlink(mon, (*dev)->name, devname);
+                    dev = mapper_db_device_next(dev);
+                }
+                node = &(*node)->next;
             }
         }
     }
@@ -154,4 +197,52 @@ void record_signals_on_stack()
         free_signal(n);
         n = pop_signal_stack();
     }
+}
+
+int recmonitor_add_device_string(const char *str)
+{
+    struct stringlist **node = &device_strings;
+    struct stringlist *prevnode = device_strings;
+    *node = malloc(sizeof(struct stringlist));
+    (*node)->string = strdup(str);
+    (*node)->next = prevnode;
+    return ++n_device_strings;
+}
+
+int recmonitor_remove_device_string(const char *str)
+{
+    struct stringlist **node = &device_strings;
+    while (*node && !strcmp(str, (*node)->string))
+        node = &(*node)->next;
+    if (!*node)
+        return n_device_strings;
+    struct stringlist *del = *node;
+    *node = (*node)->next;
+    free((void*)del->string);
+    free((void*)del);
+    return --n_device_strings;
+}
+
+int recmonitor_add_signal_string(const char *str)
+{
+    struct stringlist **node = &signal_strings;
+    struct stringlist *prevnode = signal_strings;
+    *node = malloc(sizeof(struct stringlist));
+    (*node)->string = strdup(str);
+    (*node)->next = prevnode;
+    return ++n_signal_strings;
+}
+
+int recmonitor_remove_signal_string(const char *str)
+{
+    struct stringlist **node = &signal_strings;
+    while (*node && !strcmp(str, (*node)->string))
+        node = &(*node)->next;
+    if (!*node)
+        return n_signal_strings;
+    struct stringlist *del = *node;
+    *node = (*node)->next;
+    free((void*)del->string);
+    free((void*)del);
+    return --n_signal_strings;
 }

@@ -86,11 +86,11 @@ int cmdline(int argc, char *argv[])
             break;
 
         case 'm':
-            device_name = optarg;
+            recmonitor_add_device_string(optarg);
             break;
 
         case 'p':
-            path_name = optarg;
+            recmonitor_add_signal_string(optarg);
             break;
 
         case 'f':
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     if (cmdline(argc, argv))
         return 1;
 
-    if (!device_name) {
+    if (n_device_strings < 1) {
         printf("You must specify a device name to record. (-m)\n");
         return 1;
     }
