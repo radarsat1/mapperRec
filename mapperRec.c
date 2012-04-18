@@ -10,6 +10,7 @@
 #include <signal.h>
 
 #include "mapperRec.h"
+#include "backend.h"
 #include "command.h"
 #include "recmonitor.h"
 #include "recdevice.h"
@@ -17,22 +18,6 @@
 #include "backend_binary.h"
 #include "backend_oscstreamdb.h"
 
-typedef enum
-{
-    BACKEND_FILE,
-    BACKEND_BINARY,
-    BACKEND_OSCSTREAMDB,
-    N_BACKENDS
-} backends_t;
-
-const char *backend_strings[N_BACKENDS] = { "file", "binary", "oscstreamdb" };
-
-backends_t backend = BACKEND_FILE;
-
-int (*backend_start)();
-void (*backend_stop)();
-int (*backend_poll)();
-void (*backend_write_value)(mapper_signal msig, void *v);
 int done = 0;
 
 void help()

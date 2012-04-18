@@ -3,6 +3,7 @@
 #include <string.h>
 #include <mapper/mapper.h>
 
+#include "backend.h"
 #include "recdevice.h"
 #include "mapperRec.h"
 
