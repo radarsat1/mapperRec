@@ -3,6 +3,11 @@
 import wx
 import mapperRec
 
+mapperRec.set_backend(mapperRec.BACKEND_FILE)
+mapperRec.set_device_name("testsend")
+mapperRec.set_output_filename("test.txt")
+mapperRec.start()
+
 class RecFrame(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title,
@@ -36,8 +41,31 @@ class RecFrame(wx.Frame):
         self.statusbar.SetStatusText("Please specify a device to match.",0)
         self.statusbar.SetStatusText("Idle",1)
 
-        self.devlist.InsertStringItem(0, "ExampleDevice")
-        self.siglist.InsertStringItem(0, "ExampleSig")
+        self.devtext.SetForegroundColour(wx.LIGHT_GREY)
+        self.sigtext.SetForegroundColour(wx.LIGHT_GREY)
+
+        self.polltimer = wx.Timer(self, id=1)
+        self.Bind(wx.EVT_TIMER, self.onpoll, self.polltimer)
+        self.polltimer.Start(10)
+
+    def onpoll(self, event):
+        mapperRec.poll()
+
+        a, s = mapperRec.get_device_name()
+        if a!=None and s[:10]!='/mapperRec':
+            if a==1:
+                self.devlist.InsertStringItem(0, s)
+            elif a==255:
+                self.devlist.DeleteItem(
+                    self.devlist.FindItem(0, s))
+
+        a, s = mapperRec.get_signal_name()
+        if a!=None:
+            if a==1:
+                self.siglist.InsertStringItem(0, s)
+            elif a==255:
+                self.siglist.DeleteItem(
+                    self.siglist.FindItem(0, s))
 
 class RecApp(wx.App):
     def OnInit(self):
@@ -47,8 +75,3 @@ class RecApp(wx.App):
 
 app = RecApp(0)
 app.MainLoop()
-
-# mapperRec.set_backend(mapperRec.BACKEND_FILE)
-# mapperRec.set_device_name("testsend")
-# mapperRec.set_output_filename("test.txt")
-# mapperRec.start()

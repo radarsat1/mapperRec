@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <mapper/mapper.h>
 
 #include "recmonitor.h"
@@ -32,11 +33,126 @@ signal_list_t *pop_signal_stack();
 void free_signal(signal_list_t *sig);
 void record_signals_on_stack();
 
+int send_device_names = 0;
+char *device_name_space = 0;
+int device_name_space_size = 512;
+char *dev_name_wptr = 0;
+char *dev_name_rptr = 0;
+
+static void put_device_name(const char *name, int action)
+{
+    if (!send_device_names)
+        return;
+
+    int L = strlen(name);
+
+    if (!device_name_space
+        || dev_name_wptr + L + 2 > device_name_space + device_name_space_size)
+    {
+        device_name_space_size *= 2;
+        char *old_device_name_space = device_name_space;
+        device_name_space = realloc(device_name_space,
+                                    device_name_space_size);
+        dev_name_wptr =
+            dev_name_wptr - old_device_name_space + device_name_space;
+        dev_name_rptr =
+            dev_name_rptr - old_device_name_space + device_name_space;
+    }
+
+    *(dev_name_wptr++) = 1;
+    *(dev_name_wptr++) = action;
+    strcpy(dev_name_wptr, name);
+    dev_name_wptr += L;
+    *(dev_name_wptr++) = 0;
+    *dev_name_wptr = 0;
+}
+
+const char *get_device_name()
+{
+    if (!dev_name_rptr || !*dev_name_rptr)
+        return 0;
+
+    const char *s = dev_name_rptr+1;
+    while (*dev_name_rptr
+           && dev_name_rptr < device_name_space + device_name_space_size)
+        dev_name_rptr++;
+
+    dev_name_rptr++;
+
+    // End of list
+    if (!*dev_name_rptr) {
+        dev_name_rptr = device_name_space;
+        dev_name_wptr = device_name_space;
+        (*dev_name_wptr) = 0;
+    }
+
+    return s;
+}
+
+int send_signal_names = 0;
+char *signal_name_space = 0;
+int signal_name_space_size = 512;
+char *sig_name_wptr = 0;
+char *sig_name_rptr = 0;
+
+static void put_signal_name(const char *devname, const char *signame,
+                            int action)
+{
+    if (!send_signal_names)
+        return;
+
+    int L = strlen(devname) + strlen(signame);
+
+    if (!signal_name_space
+        || sig_name_wptr + L + 2 > signal_name_space + signal_name_space_size)
+    {
+        signal_name_space_size *= 2;
+        char *old_signal_name_space = signal_name_space;
+        signal_name_space = realloc(signal_name_space,
+                                    signal_name_space_size);
+        sig_name_wptr =
+            sig_name_wptr - old_signal_name_space + signal_name_space;
+        sig_name_rptr =
+            sig_name_rptr - old_signal_name_space + signal_name_space;
+    }
+
+    *(sig_name_wptr++) = 1;
+    *(sig_name_wptr++) = action;
+    strcpy(sig_name_wptr, devname);
+    strcpy(sig_name_wptr + strlen(devname), signame);
+    sig_name_wptr += L;
+    *(sig_name_wptr++) = 0;
+    *sig_name_wptr = 0;
+}
+
+const char *get_signal_name()
+{
+    if (!sig_name_rptr || !*sig_name_rptr)
+        return 0;
+
+    const char *s = sig_name_rptr+1;
+    while (*sig_name_rptr
+           && sig_name_rptr < signal_name_space + signal_name_space_size)
+        sig_name_rptr++;
+
+    sig_name_rptr++;
+
+    // End of list
+    if (!*sig_name_rptr) {
+        sig_name_rptr = signal_name_space;
+        sig_name_wptr = signal_name_space;
+        (*sig_name_wptr) = 0;
+    }
+
+    return s;
+}
+
 static void device_callback(mapper_db_device dev,
                             mapper_db_action_t action,
                             void *user)
 {
     if (action == MDB_NEW) {
+        put_device_name(dev->name, 1);
         struct stringlist **node = &device_strings;
         while (*node) {
             if (strstr(dev->name, (*node)->string)!=0
@@ -49,6 +165,9 @@ static void device_callback(mapper_db_device dev,
             node = &(*node)->next;
         }
     }
+    else if (action == MDB_REMOVE) {
+        put_device_name(dev->name, -1);
+    }
 }
 
 static void signal_callback(mapper_db_signal sig,
@@ -58,6 +177,7 @@ static void signal_callback(mapper_db_signal sig,
     if (!sig->is_output)
         return;
     if (action == MDB_NEW) {
+        put_signal_name(sig->device_name, sig->name, 1);
         struct stringlist **devnode = &device_strings;
         while (*devnode) {
             if (strstr(sig->device_name, (*devnode)->string)!=0
@@ -90,6 +210,9 @@ static void signal_callback(mapper_db_signal sig,
             }
             devnode = &(*devnode)->next;
         }
+    }
+    else if (action == MDB_REMOVE) {
+        put_signal_name(sig->device_name, sig->name, -1);
     }
 }
 

@@ -23,4 +23,10 @@ int recmonitor_remove_device_string(const char *str);
 int recmonitor_add_signal_string(const char *str);
 int recmonitor_remove_signal_string(const char *str);
 
+extern int send_device_names;
+extern int send_signal_names;
+
+const char *get_device_name();
+const char *get_signal_name();
+
 #endif // __RECMONITOR_H__

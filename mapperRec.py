@@ -88,6 +88,10 @@ def start():
     backend_poll = ctypes.CFUNCTYPE(None).in_dll(rec, "backend_poll")
     backend_stop = ctypes.CFUNCTYPE(None).in_dll(rec, "backend_stop")
 
+    # Instruct library to send us names via a memory FIFO
+    ctypes.c_int.in_dll(rec, "send_device_names").value = 1
+    ctypes.c_int.in_dll(rec, "send_signal_names").value = 1
+
     if backend_start():
         raise Exception("Error starting backend.")
 
@@ -98,23 +102,47 @@ def start():
         try:
             if rec.recdevice_start():
                 raise Exception("Error starting device.")
-
-            try:
-                done = False
-                while not (backend_poll()
-                           or rec.command_poll()
-                           or done):
-                    rec.recmonitor_poll()
-                    rec.recdevice_poll()
-                    time.sleep(0.1)
-            finally:
-                rec.recdevice_stop()
-
-        finally:
+        except:
             rec.recmonitor_stop()
+            raise
 
-    finally:
+    except:
         backend_stop()
+        raise
+
+def stop():
+    rec.recdevice_stop()
+    rec.recmonitor_stop()
+    if ctypes.c_int.in_dll(rec, "backend_stop")!=0:
+        backend_stop = ctypes.CFUNCTYPE(None).in_dll(rec, "backend_stop")
+        backend_stop()
+
+def poll():
+    backend_poll = ctypes.CFUNCTYPE(None).in_dll(rec, "backend_poll")
+    if backend_poll() or rec.command_poll():
+        return True
+    rec.recmonitor_poll()
+    rec.recdevice_poll()
+
+_get_device_name = rec.get_device_name
+_get_device_name.argtypes = None
+_get_device_name.restype = ctypes.c_char_p
+
+_get_signal_name = rec.get_signal_name
+_get_signal_name.argtypes = None
+_get_signal_name.restype = ctypes.c_char_p
+
+def get_device_name():
+    s = _get_device_name()
+    if s!=None and s!='':
+        return ord(s[0]), s[1:]
+    return None, None
+
+def get_signal_name():
+    s = _get_signal_name()
+    if s!=None and s!='':
+        return ord(s[0]), s[1:]
+    return None, None
 
 if __name__=="__main__":
     set_backend(BACKEND_FILE)
