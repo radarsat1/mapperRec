@@ -139,7 +139,7 @@ void record_signals_on_stack()
         printf("Recording %s%s\n", n->device_name, n->signal_name);
 
         /* TODO only do this if necessary -- will be ignored otherwise */
-        mapper_monitor_link(mon, n->device_name, devname);
+        mapper_monitor_link(mon, n->device_name, devname, 0, 0);
 
         recdevice_add_input(n->device_name, n->signal_name,
                             n->type, n->length);

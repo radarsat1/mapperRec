@@ -25,10 +25,11 @@ void recdevice_stop()
         mdev_free(recdev);
 }
 
-void input_handler(struct _mapper_signal *msig, mapper_db_signal props,
-                   mapper_timetag_t *timetag, void *v)
+void input_handler(mapper_signal sig, mapper_db_signal props,
+                   int instance_id, void *value, int count,
+                   mapper_timetag_t *timetag)
 {
-    backend_write_value(msig, v);
+    backend_write_value(sig, value);
 }
 
 void recdevice_add_input(const char *devname, const char *signame,
