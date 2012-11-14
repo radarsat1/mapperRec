@@ -11,7 +11,7 @@ mapper_device *recdev;
 
 int recdevice_start()
 {
-    recdev = mdev_new("mapperRec", 9000, 0);
+    recdev = mdev_new("mapperRec", 0, 0);
     return recdev==0;
 }
 
@@ -30,7 +30,7 @@ void input_handler(mapper_signal sig, mapper_db_signal props,
                    int instance_id, void *value, int count,
                    mapper_timetag_t *timetag)
 {
-    backend_write_value(sig, value);
+    backend_write_value(sig, value, timetag);
 }
 
 void recdevice_add_input(const char *devname, const char *signame,

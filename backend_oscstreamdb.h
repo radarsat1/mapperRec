@@ -16,6 +16,7 @@ void oscstreamdb_defaults();
 int oscstreamdb_start();
 void oscstreamdb_stop();
 int oscstreamdb_poll();
-void oscstreamdb_write_value(mapper_signal msig, void *v);
+void oscstreamdb_write_value(mapper_signal msig, void *v,
+                             mapper_timetag_t *tt);
 
 #endif // __BACKEND_OSCSTREAMDB_H__

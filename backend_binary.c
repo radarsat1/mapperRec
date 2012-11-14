@@ -55,7 +55,8 @@ int binary_poll()
 }
 
 /* TODO: Bundle messages together that happen in the same call to poll(). */
-void binary_write_value(mapper_signal msig, void *v)
+void binary_write_value(mapper_signal msig, void *v,
+                        mapper_timetag_t *tt)
 {
     char str[1024], *path = str;
     msig_full_name(msig, path, 1024); 
@@ -71,7 +72,10 @@ void binary_write_value(mapper_signal msig, void *v)
 
     mapper_db_signal mprop = msig_properties(msig);
 
-    fwrite(&now, sizeof(lo_timetag), 1, output_file);
+    if (!tt || !tt->sec)
+        fwrite(&now, sizeof(lo_timetag), 1, output_file);
+    else
+        fwrite(tt, sizeof(lo_timetag), 1, output_file);
 
     int len = strlen(path), wrote=len, i;
     len = (len / 4 + 1) * 4;

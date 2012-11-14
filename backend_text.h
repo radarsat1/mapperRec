@@ -14,6 +14,7 @@ void text_defaults();
 int text_start();
 void text_stop();
 int text_poll();
-void text_write_value(mapper_signal msig, void *v);
+void text_write_value(mapper_signal msig, void *v,
+                      mapper_timetag_t *tt);
 
 #endif // __BACKEND_TEXT_H__

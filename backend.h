@@ -19,6 +19,7 @@ extern backends_t backend;
 extern int (*backend_start)();
 extern void (*backend_stop)();
 extern int (*backend_poll)();
-extern void (*backend_write_value)(mapper_signal msig, void *v);
+extern void (*backend_write_value)(mapper_signal msig, void *v,
+                                   mapper_timetag_t *tt);
 
 #endif // __BACKEND_H__
