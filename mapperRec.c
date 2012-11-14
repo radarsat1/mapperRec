@@ -7,8 +7,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "mapperRec.h"
+#include "backend.h"
 #include "command.h"
 #include "recmonitor.h"
 #include "recdevice.h"
@@ -16,22 +18,6 @@
 #include "backend_binary.h"
 #include "backend_oscstreamdb.h"
 
-typedef enum
-{
-    BACKEND_FILE,
-    BACKEND_BINARY,
-    BACKEND_OSCSTREAMDB,
-    N_BACKENDS
-} backends_t;
-
-const char *backend_strings[N_BACKENDS] = { "file", "binary", "oscstreamdb" };
-
-backends_t backend = BACKEND_FILE;
-
-int (*backend_start)();
-void (*backend_stop)();
-int (*backend_poll)();
-void (*backend_write_value)(mapper_signal msig, void *v);
 int done = 0;
 
 void help()
@@ -100,11 +86,11 @@ int cmdline(int argc, char *argv[])
             break;
 
         case 'm':
-            device_name = optarg;
+            recmonitor_add_device_string(optarg);
             break;
 
         case 'p':
-            path_name = optarg;
+            recmonitor_add_signal_string(optarg);
             break;
 
         case 'f':
@@ -144,7 +130,7 @@ int main(int argc, char *argv[])
     if (cmdline(argc, argv))
         return 1;
 
-    if (!device_name) {
+    if (n_device_strings < 1) {
         printf("You must specify a device name to record. (-m)\n");
         return 1;
     }
