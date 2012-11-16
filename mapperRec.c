@@ -141,12 +141,15 @@ int main(int argc, char *argv[])
         backend_stop = text_stop;
         backend_poll = text_poll;
         backend_write_value = text_write_value;
+        backend_write_generic = text_write_generic;
         break;
     case BACKEND_BINARY:
         backend_start = binary_start;
         backend_stop = binary_stop;
         backend_poll = binary_poll;
         backend_write_value = binary_write_value;
+        //WIP
+        //backend_write_generic = binary_write_generic;
         break;
     case BACKEND_OSCSTREAMDB:
         if (backend_oscstreamdb_options.stream==0) {
@@ -157,6 +160,8 @@ int main(int argc, char *argv[])
         backend_stop = oscstreamdb_stop;
         backend_poll = oscstreamdb_poll;
         backend_write_value = oscstreamdb_write_value;
+        //WIP
+        //backend_write_generic = oscstreamdb_write_generic;
         break;
     default:
         printf("Unknown backend selected.\n");

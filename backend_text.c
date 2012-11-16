@@ -93,3 +93,37 @@ void text_write_value(mapper_signal msig, void *v)
         last_write = now;
     }
 }
+
+/* TODO: Bundle messages together that happen in the same call to poll(). */
+void text_write_generic(const char *path,
+                        const char *types,
+                        lo_message m)
+{
+    lo_timetag now;
+    lo_timetag_now(&now);
+
+    fprintf(output_file, "%u %u %s %s",
+            now.sec, now.frac, path, types);
+
+    lo_arg **a = lo_message_get_argv(m);
+    const char *t;
+    int i=0;
+    for (t=types; *t; t++, i++)
+    {
+        if (*t == 'i')
+            fprintf(output_file, " %d", a[i]->i);
+        else if (*t == 'f')
+            fprintf(output_file, " %g", a[i]->f);
+        else if (*t == 's')
+            fprintf(output_file, " %s", &a[i]->s);
+    }
+
+    fprintf(output_file, "\n");
+    fflush(output_file);
+
+    if (now.sec > last_write.sec) {
+        printf(".");
+        fflush(stdout);
+        last_write = now;
+    }
+}

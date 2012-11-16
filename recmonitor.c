@@ -301,6 +301,9 @@ void record_signals_on_stack()
     if (!devname) return;
 
     signal_list_t *n = pop_signal_stack();
+    if (!n)
+        return;
+
     while (n) {
         printf("Recording %s%s\n", n->device_name, n->signal_name);
 
@@ -320,6 +323,8 @@ void record_signals_on_stack()
         free_signal(n);
         n = pop_signal_stack();
     }
+
+    recdevice_reset_generic_handler();
 }
 
 int recmonitor_add_device_string(const char *str)
