@@ -102,7 +102,8 @@ int oscstreamdb_poll()
 }
 
 /* TODO: Bundle messages together that happen in the same call to poll(). */
-void oscstreamdb_write_value(mapper_signal msig, void *v)
+void oscstreamdb_write_value(mapper_signal msig, void *v,
+                             mapper_timetag_t *tt)
 {
     int i;
     char str[1024], *path = str;
@@ -119,10 +120,14 @@ void oscstreamdb_write_value(mapper_signal msig, void *v)
     if (!a_write)
         printf("No write port yet. :(\n");
     else {
-        lo_timetag now;
-        lo_timetag_now(&now);
-
-        lo_bundle b = lo_bundle_new(now);
+        lo_bundle b;
+        if (!tt || !tt->sec) {
+            lo_timetag now;
+            lo_timetag_now(&now);
+            b = lo_bundle_new(now);
+        }
+        else
+            b = lo_bundle_new(*tt);
         if (!b) {
             printf("Could not create lo_bundle.\n");
             return;

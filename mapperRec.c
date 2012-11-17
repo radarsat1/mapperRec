@@ -28,7 +28,7 @@ void help()
            "          [-r <path to oscsstreamdb>] "
                      "[-f <output file>]\n"
            "          [-p <OSC path string to match>]"
-                     "[-v] [-h]");
+                     "[-v] [-h]\n");
 }
 
 int cmdline(int argc, char *argv[])

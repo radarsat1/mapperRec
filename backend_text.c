@@ -55,7 +55,8 @@ int text_poll()
 }
 
 /* TODO: Bundle messages together that happen in the same call to poll(). */
-void text_write_value(mapper_signal msig, void *v)
+void text_write_value(mapper_signal msig, void *v,
+                      mapper_timetag_t *tt)
 {
     int i;
     char str[1024], *path = str;
@@ -72,8 +73,12 @@ void text_write_value(mapper_signal msig, void *v)
 
     mapper_db_signal mprop = msig_properties(msig);
 
-    fprintf(output_file, "%u %u %s %c",
-            now.sec, now.frac, path, mprop->type);
+    if (!tt || !tt->sec)
+        fprintf(output_file, "%u %u %s %c ",
+                now.sec, now.frac, path, mprop->type);
+    else
+        fprintf(output_file, "%u %u %s %c ",
+                tt->sec, tt->frac, path, mprop->type);
 
     if (mprop->type == 'i') {
         for (i=0; i<mprop->length; i++)
@@ -102,8 +107,14 @@ void text_write_generic(const char *path,
     lo_timetag now;
     lo_timetag_now(&now);
 
-    fprintf(output_file, "%u %u %s %s",
-            now.sec, now.frac, path, types);
+    lo_timetag tt = lo_message_get_timestamp(m);
+
+    if (memcmp(&tt, &LO_TT_IMMEDIATE, sizeof(lo_timetag))==0)
+        fprintf(output_file, "%u %u %s %s ",
+                now.sec, now.frac, path, types);
+    else
+        fprintf(output_file, "%u %u %s %s ",
+                tt.sec, tt.frac, path, types);
 
     lo_arg **a = lo_message_get_argv(m);
     const char *t;

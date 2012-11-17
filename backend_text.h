@@ -14,7 +14,8 @@ void text_defaults();
 int text_start();
 void text_stop();
 int text_poll();
-void text_write_value(mapper_signal msig, void *v);
+void text_write_value(mapper_signal msig, void *v,
+                      mapper_timetag_t *tt);
 void text_write_generic(const char *path,
                         const char *types,
                         lo_message m);
