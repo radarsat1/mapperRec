@@ -22,13 +22,49 @@ int done = 0;
 
 void help()
 {
-    printf("mapperRec -m <mapper device> [-b <backend=file,binary,oscstreamdb>]\n"
-           "          [-s <stream name>] "
-                     "[-d <database string>]\n"
-           "          [-r <path to oscsstreamdb>] "
-                     "[-f <output file>]\n"
-           "          [-p <OSC path string to match>]"
-                     "[-v] [-h]\n");
+    printf("mapperRec -d <mapper device> [-b <backend=text,binary,oscstreamdb>]\n"
+           "          [-k <backend options>] "
+                     "[-o <output file>]\n"
+           "          [-s <mapper or OSC signal to match>] "
+                     "[-v] [-h]\n\n"
+           "Backend-specific options are comma-separated key=value pairs.\n"
+           "Options are,\n"
+           "  OSCStreamDB: \"path\" (to oscsstreamdb executable), "
+                          "\"database\", \"stream\"\n");
+}
+
+int parse_options(const char *optarg)
+{
+    char *opts = alloca(strlen(optarg));
+    strcpy(opts, optarg);
+    char *p, *s = strtok_r(opts, ",", &p);
+    while (s)
+    {
+        char *q, *t = strtok_r(s, "=", &q);
+        t = strtok_r(0, "=", &q);
+        if (strncmp(s, "path", 4)==0
+            && backend==BACKEND_OSCSTREAMDB)
+        {
+            backend_oscstreamdb_options.executable_path = strdup(t);
+        }
+        else if (strncmp(s, "database", 8)==0
+                 && backend==BACKEND_OSCSTREAMDB)
+        {
+            backend_oscstreamdb_options.database = strdup(t);
+        }
+        else if (strncmp(s, "stream", 6)==0
+                 && backend==BACKEND_OSCSTREAMDB)
+        {
+            backend_oscstreamdb_options.stream = strdup(t);
+        }
+        else {
+            printf("Unknown option `%s' for %s backend.\n", s,
+                backend_strings[backend]);
+            return 1;
+        }
+        s = strtok_r(0, ",", &p);
+    }
+    return 0;
 }
 
 int cmdline(int argc, char *argv[])
@@ -40,18 +76,16 @@ int cmdline(int argc, char *argv[])
         {
             {"help",        no_argument,       0, 'h'},
             {"version",     no_argument,       0, 'v'},
-            {"database",    required_argument, 0, 'd'},
-            {"stream",      required_argument, 0, 's'},
+            {"options",     required_argument, 0, 'k'},
             {"backend",     required_argument, 0, 'b'},
-            {"oscstreamdb", required_argument, 0, 'r'},
-            {"device",      required_argument, 0, 'm'},
-            {"file",        required_argument, 0, 'f'},
-            {"path",        required_argument, 0, 'p'},
+            {"device",      required_argument, 0, 'd'},
+            {"output",      required_argument, 0, 'o'},
+            {"signal",      required_argument, 0, 's'},
             {0, 0, 0, 0}
         };
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "hvd:s:b:r:m:f:p:",
+        c = getopt_long (argc, argv, "hvd:b:k:d:o:s:",
                          long_options, &option_index);
         if (c == -1)
             break;
@@ -61,16 +95,9 @@ int cmdline(int argc, char *argv[])
         case 0:
             break;
 
-        case 'd':
-            backend_oscstreamdb_options.database = optarg;
-            break;
-
-        case 's':
-            backend_oscstreamdb_options.stream = optarg;
-            break;
-
-        case 'r':
-            backend_oscstreamdb_options.executable_path = optarg;
+        case 'k':
+            if (parse_options(optarg))
+                exit(1);
             break;
 
         case 'b':
@@ -85,15 +112,15 @@ int cmdline(int argc, char *argv[])
             }
             break;
 
-        case 'm':
+        case 'd':
             recmonitor_add_device_string(optarg);
             break;
 
-        case 'p':
+        case 's':
             recmonitor_add_signal_string(optarg);
             break;
 
-        case 'f':
+        case 'o':
             backend_text_options.file_path = optarg;
             backend_binary_options.file_path = optarg;
             break;
@@ -131,7 +158,7 @@ int main(int argc, char *argv[])
         return 1;
 
     if (n_device_strings < 1) {
-        printf("You must specify a device name to record. (-m)\n");
+        printf("You must specify a device name to record. (-d)\n");
         return 1;
     }
 
