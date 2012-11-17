@@ -25,7 +25,8 @@ void help()
     printf("mapperRec -d <mapper device> [-b <backend=text,binary,oscstreamdb>]\n"
            "          [-k <backend options>] "
                      "[-o <output file>]\n"
-           "          [-s <mapper or OSC signal to match>] "
+           "          [-s <mapper or OSC signal to match>]\n"
+           "          [-p <playback mode>] "
                      "[-v] [-h]\n\n"
            "Backend-specific options are comma-separated key=value pairs.\n"
            "Options are,\n"
@@ -81,11 +82,12 @@ int cmdline(int argc, char *argv[])
             {"device",      required_argument, 0, 'd'},
             {"output",      required_argument, 0, 'o'},
             {"signal",      required_argument, 0, 's'},
+            {"playback",    no_argument, 0, 'p'},
             {0, 0, 0, 0}
         };
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "hvd:b:k:d:o:s:",
+        c = getopt_long (argc, argv, "hvd:b:k:d:o:s:p",
                          long_options, &option_index);
         if (c == -1)
             break;
