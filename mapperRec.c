@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     }
 
     switch (backend) {
-    case BACKEND_FILE:
+    case BACKEND_TEXT:
         backend_start = text_start;
         backend_stop = text_stop;
         backend_poll = text_poll;

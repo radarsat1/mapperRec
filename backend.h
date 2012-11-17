@@ -6,7 +6,7 @@
 
 typedef enum
 {
-    BACKEND_FILE,
+    BACKEND_TEXT,
     BACKEND_BINARY,
     BACKEND_OSCSTREAMDB,
     N_BACKENDS

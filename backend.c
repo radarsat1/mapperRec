@@ -1,9 +1,9 @@
 
 #include "backend.h"
 
-const char *backend_strings[N_BACKENDS] = { "file", "binary", "oscstreamdb" };
+const char *backend_strings[N_BACKENDS] = { "text", "binary", "oscstreamdb" };
 
-backends_t backend = BACKEND_FILE;
+backends_t backend = BACKEND_TEXT;
 
 int (*backend_start)() = 0;
 void (*backend_stop)() = 0;
