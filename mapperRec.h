@@ -4,7 +4,7 @@
 
 #include <mapper/mapper.h>
 
-#define PACKAGE_VERSION "0.1"
+#define PACKAGE_VERSION "0.2"
 
 extern int done;
 
