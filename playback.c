@@ -7,6 +7,11 @@
 #include "playback.h"
 #include "backend.h"
 
+playback_options_t playback_options =
+{
+    .dest_url = 0,
+};
+
 void playback(int just_print)
 {
     if (!backend_seek_start || !backend_read)
@@ -16,15 +21,21 @@ void playback(int just_print)
         exit(1);
     }
 
-    if (backend_seek_start())
-        exit(0);
-
-    const char *url = "osc.udp://localhost:9000";
-    lo_address a = lo_address_new_from_url(url);
-    if (!a) {
-        printf("Error opening destination OSC address `%s'.\n", url);
+    if (!playback_options.dest_url && !just_print)
+    {
+        printf("No destination URL was provided for playback.\n");
         exit(1);
     }
+
+    lo_address a = lo_address_new_from_url(playback_options.dest_url);
+    if (!a) {
+        printf("Error opening destination OSC address `%s'.\n",
+               playback_options.dest_url);
+        exit(1);
+    }
+
+    if (backend_seek_start())
+        exit(0);
 
     lo_message m;
     lo_timetag tt, first_tt;

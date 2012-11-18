@@ -30,11 +30,14 @@ void help()
                      "[-o <output file>]\n"
            "          [-s <mapper or OSC signal to match>]\n"
            "          [-p <playback mode>] "
+                     "[-u <destination OSC URL>] "
                      "[-v] [-h]\n\n"
            "Backend-specific options are comma-separated key=value pairs.\n"
            "Options are,\n"
            "  OSCStreamDB: \"path\" (to oscsstreamdb executable), "
-                          "\"database\", \"stream\"\n");
+                          "\"database\", \"stream\"\n\n"
+           "Destination OSC URLs for playback mode are specified in the format\n"
+           "supported by liblo, e.g., \"osc.udp://<host>:<port>\".\n");
 }
 
 int parse_options(const char *optarg)
@@ -86,11 +89,12 @@ int cmdline(int argc, char *argv[])
             {"output",      required_argument, 0, 'o'},
             {"signal",      required_argument, 0, 's'},
             {"playback",    no_argument, 0, 'p'},
+            {"url",         required_argument, 0, 'u'},
             {0, 0, 0, 0}
         };
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "hvd:b:k:d:o:s:p",
+        c = getopt_long (argc, argv, "hvd:b:k:d:o:s:pu:",
                          long_options, &option_index);
         if (c == -1)
             break;
@@ -134,6 +138,10 @@ int cmdline(int argc, char *argv[])
             // Toggle playback mode.
             // i.e., if started as mapperPlay, turns playback mode off.
             playback_mode = !playback_mode;
+            break;
+
+        case 'u':
+            playback_options.dest_url = optarg;
             break;
 
         case 'v':
