@@ -12,6 +12,7 @@
 backend_text_options_t backend_text_options;
 
 static FILE* output_file = 0;
+static FILE* input_file = 0;
 
 static lo_timetag last_write = {0,0};
 
@@ -46,6 +47,12 @@ void text_stop()
     {
         fclose(output_file);
         output_file = 0;
+    }
+
+    if (input_file)
+    {
+        fclose(input_file);
+        input_file = 0;
     }
 }
 
@@ -137,4 +144,73 @@ void text_write_generic(const char *path,
         fflush(stdout);
         last_write = now;
     }
+}
+
+int text_seek_start()
+{
+    if (!input_file)
+    {
+        if (!backend_text_options.file_path) {
+            printf("No input filename specified.\n");
+            return 1;
+        }
+
+        input_file = fopen(backend_text_options.file_path, "r");
+
+        if (!input_file) {
+            printf("Error opening file `%s' for reading.\n",
+                   backend_text_options.file_path);
+            return 1;
+        }
+    }
+
+    fseek(input_file, 0, SEEK_SET);
+
+    return 0;
+}
+
+int text_read(char **_path, lo_message *_m, lo_timetag *_tt)
+{
+    const char *delim = " \r\n";
+    char str[1024];
+    if (!fgets(str, 1024, input_file))
+        return 1;
+
+    char *t, *p, *s = strtok_r(str, delim, &p);
+    lo_timetag tt;
+    lo_message m = lo_message_new();
+    char *path;
+
+    if (s) { tt.sec = atoi(s); }
+    s = strtok_r(0, delim, &p);
+    if (s) { tt.frac = atoi(s); }
+    s = strtok_r(0, delim, &p);
+    if (s) { path = s; }
+    s = strtok_r(0, delim, &p);
+    if (s) { t = s; }
+
+    while (*t) {
+        s = strtok_r(0, delim, &p);
+        if (!s) break;
+        switch (*t) {
+        case 'i':
+            lo_message_add_int32(m, atoi(s));
+            break;
+        case 'f':
+            lo_message_add_float(m, atof(s));
+            break;
+        case 's':
+            lo_message_add_string(m, s);
+            break;
+        }
+        t ++;
+    }
+
+    _tt->sec = tt.sec;
+    _tt->frac = tt.frac;
+
+    *_m = m;
+    *_path = strdup(path);
+
+    return 0;
 }

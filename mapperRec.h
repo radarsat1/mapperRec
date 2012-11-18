@@ -6,4 +6,6 @@
 
 #define PACKAGE_VERSION "0.1"
 
+extern int done;
+
 #endif // __MAPPERREC_H__

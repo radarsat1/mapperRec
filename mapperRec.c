@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <libgen.h>
 
 #include "mapperRec.h"
 #include "backend.h"
@@ -17,8 +18,10 @@
 #include "backend_text.h"
 #include "backend_binary.h"
 #include "backend_oscstreamdb.h"
+#include "playback.h"
 
 int done = 0;
+int playback_mode = 0;
 
 void help()
 {
@@ -127,6 +130,12 @@ int cmdline(int argc, char *argv[])
             backend_binary_options.file_path = optarg;
             break;
 
+        case 'p':
+            // Toggle playback mode.
+            // i.e., if started as mapperPlay, turns playback mode off.
+            playback_mode = !playback_mode;
+            break;
+
         case 'v':
             printf("mapperRec v%s, (C) " __DATE__ " Stephen Sinclair; http://idmil.org\n", PACKAGE_VERSION);
             exit(0);
@@ -143,6 +152,16 @@ int cmdline(int argc, char *argv[])
     return 0;
 }
 
+// If we are executed as mapperPlay, set playback mode by default.
+void init_playmode_default(const char *str)
+{
+    char *s = alloca(strlen(str));
+    strcpy(s, str);
+    if (strncmp(basename(s), "mapperPlay", 10)==0) {
+        playback_mode = 1;
+    }
+}
+
 void ctrlc(int sig)
 {
     done = 1;
@@ -155,6 +174,8 @@ int main(int argc, char *argv[])
     signal(SIGINT, ctrlc);
 
     oscstreamdb_defaults();
+
+    init_playmode_default(argv[0]);
 
     if (cmdline(argc, argv))
         return 1;
@@ -171,6 +192,8 @@ int main(int argc, char *argv[])
         backend_poll = text_poll;
         backend_write_value = text_write_value;
         backend_write_generic = text_write_generic;
+        backend_seek_start = text_seek_start;
+        backend_read = text_read;
         break;
     case BACKEND_BINARY:
         backend_start = binary_start;
@@ -195,6 +218,11 @@ int main(int argc, char *argv[])
     default:
         printf("Unknown backend selected.\n");
         return 1;
+    }
+
+    if (playback_mode) {
+        playback(0);
+        return 0;
     }
 
     if (backend_start()) {

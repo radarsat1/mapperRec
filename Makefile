@@ -12,7 +12,7 @@ CFLAGS+=-arch i386
 LDFLAGS+=-Wl,-flat_namespace,-undefined,dynamic_lookup
 endif
 
-LIBOBJS=recmonitor.o recdevice.o command.o backend.o \
+LIBOBJS=recmonitor.o recdevice.o command.o backend.o playback.o \
         backend_text.o backend_binary.o backend_oscstreamdb.o
 
 all: mapperRec libmapperrec$(LIBEXT)

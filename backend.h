@@ -24,5 +24,7 @@ extern void (*backend_write_value)(mapper_signal msig, void *v,
 extern void (*backend_write_generic)(const char *path,
                                      const char *types,
                                      lo_message m);
+extern int (*backend_seek_start)();
+extern int (*backend_read)(char **path, lo_message *m, lo_timetag *tt);
 
 #endif // __BACKEND_H__
