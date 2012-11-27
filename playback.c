@@ -62,27 +62,12 @@ void playback(int just_print)
         free(path);
         lo_message_free(m);
 
-        const uint64_t max_frac = ((uint64_t)1)<<32;
-        const double max_fracd = (double)max_frac;
         while (!backend_read(&path, &m, &tt) && !done)
         {
-            uint64_t frac_to_wait, sec_to_wait = tt.sec - first_tt.sec;
-            if (sec_to_wait <= 0)
-            {
-                sec_to_wait = 0;
-                frac_to_wait = tt.frac - first_tt.frac;
-            }
-            else
-            {
-                frac_to_wait = (max_frac - first_tt.frac) + tt.frac;
-            }
+            double wait_time = mapper_timetag_difference(tt, first_tt);
 
-            useconds_t wait_time =
-                sec_to_wait*1000000 + (useconds_t)((frac_to_wait
-                                                    / max_fracd)*1e6);
-
-            if (wait_time)
-                usleep(wait_time);
+            if (wait_time > 0.)
+                usleep(wait_time * 1000000);
 
             lo_send_message(a, path, m);
 
