@@ -253,8 +253,7 @@ int main(int argc, char *argv[])
 
     while (!(backend_poll() || command_poll() || done)) {
         recmonitor_poll();
-        recdevice_poll();
-        usleep(100000);
+        recdevice_poll(100);
     }
 
   done:

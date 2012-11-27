@@ -15,9 +15,9 @@ int recdevice_start()
     return recdev==0;
 }
 
-void recdevice_poll()
+void recdevice_poll(int block_ms)
 {
-    mdev_poll(recdev, 0);
+    mdev_poll(recdev, block_ms);
 }
 
 void recdevice_stop()

@@ -5,7 +5,7 @@
 #include <mapper/mapper.h>
 
 int recdevice_start();
-void recdevice_poll();
+void recdevice_poll(int block_ms);
 void recdevice_stop();
 
 void recdevice_add_input(const char *devname, const char *signame,
