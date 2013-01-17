@@ -298,6 +298,7 @@ void record_signals_on_stack()
         return;
 
     const char *devname = mdev_name(recdev);
+    char destname[256] = "";
     if (!devname) return;
 
     signal_list_t *n = pop_signal_stack();
@@ -307,8 +308,10 @@ void record_signals_on_stack()
     while (n) {
         printf("Recording %s%s\n", n->device_name, n->signal_name);
 
-        /* TODO only do this if necessary -- will be ignored otherwise */
-        mapper_monitor_link(mon, n->device_name, devname, 0, 0);
+        if (strncmp(n->device_name, destname, 256)) {
+            mapper_monitor_link(mon, n->device_name, devname, 0, 0);
+            snprintf(destname, 256, "%s", n->device_name);
+        }
 
         recdevice_add_input(n->device_name, n->signal_name,
                             n->type, n->length);
