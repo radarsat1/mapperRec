@@ -189,9 +189,7 @@ int text_read(char **_path, lo_message *_m, lo_timetag *_tt)
     s = strtok_r(0, delim, &p);
     if (s) { t = s; }
 
-    while (*t) {
-        s = strtok_r(0, delim, &p);
-        if (!s) break;
+    while ((s = strtok_r(0, delim, &p))) {
         switch (*t) {
         case 'i':
             lo_message_add_int32(m, atoi(s));
@@ -203,7 +201,8 @@ int text_read(char **_path, lo_message *_m, lo_timetag *_tt)
             lo_message_add_string(m, s);
             break;
         }
-        t ++;
+        if (*(t+1))
+            t++;
     }
 
     _tt->sec = tt.sec;
