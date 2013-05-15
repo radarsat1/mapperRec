@@ -159,7 +159,7 @@ static void device_callback(mapper_db_device dev,
                 && strcmp(dev->name,
                           mdev_name(recdev)?mdev_name(recdev):"")!=0)
             {
-                mapper_monitor_request_signals_by_name(mon, dev->name);
+                mapper_monitor_request_signals_by_device_name(mon, dev->name);
                 break;
             }
             node = &(*node)->next;
